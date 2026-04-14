@@ -10,3 +10,4 @@ data/raw/esco/
 data/raw/source_data/*.xlsx
 data/raw/source_data/*.csv
 *.pkl
+.vercel
