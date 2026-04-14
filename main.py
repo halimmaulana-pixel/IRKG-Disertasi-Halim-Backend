@@ -1,4 +1,4 @@
-# backend/main.py - Dynamic import approach
+# backend/main.py - With logging
 import os, sys, importlib
 from pathlib import Path
 from fastapi import FastAPI
@@ -15,7 +15,9 @@ app.add_middleware(
     CORSMiddleware, allow_origins=_allowed, allow_methods=["*"], allow_headers=["*"]
 )
 
-# Try loading each router with try-except
+loaded = []
+failed = []
+
 for router_name in [
     "graph",
     "pipeline",
@@ -33,14 +35,16 @@ for router_name in [
             app.include_router(
                 router, prefix=f"/api/{router_name}", tags=[router_name.title()]
             )
-            print(f"Loaded {router_name}")
+            loaded.append(router_name)
+            print(f"Loaded {router_name}", file=sys.stderr)
     except Exception as e:
+        failed.append((router_name, str(e)))
         print(f"Failed {router_name}: {e}", file=sys.stderr)
 
 
 @app.get("/")
 def root():
-    return {"status": "IR-KG API v3.0"}
+    return {"status": "IR-KG API v3.0", "loaded": loaded, "failed": failed}
 
 
 @app.get("/health")
