@@ -4,7 +4,23 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-sys.path.insert(0, str(Path(__file__).parent))
+# Add paths
+CURRENT_DIR = Path(__file__).parent
+sys.path.insert(0, str(CURRENT_DIR))
+
+# Force explicit imports
+import routers.graph
+import routers.pipeline
+import routers.cri
+import routers.ablation
+import routers.compare
+import routers.upload
+import routers.domain
+import routers.cpl_mapping
+import database
+import models
+
+print(f"Loaded routers: graph={hasattr(routers, 'graph')}", file=sys.stderr)
 
 app = FastAPI(title="IR-KG Web API")
 
@@ -14,36 +30,14 @@ app.add_middleware(
     CORSMiddleware, allow_origins=_allowed, allow_methods=["*"], allow_headers=["*"]
 )
 
-# Import with debug
-print("Starting imports...", file=sys.stderr)
-try:
-    from routers import (
-        graph,
-        pipeline,
-        cri,
-        ablation,
-        compare,
-        upload,
-        domain,
-        cpl_mapping,
-    )
-
-    print(f"Imported routers: {dir()}", file=sys.stderr)
-
-    app.include_router(graph.router, prefix="/api/graph", tags=["KG"])
-    app.include_router(pipeline.router, prefix="/api/pipeline", tags=["Pipeline"])
-    app.include_router(cri.router, prefix="/api/cri", tags=["CRI"])
-    app.include_router(ablation.router, prefix="/api/ablation", tags=["Ablation"])
-    app.include_router(compare.router, prefix="/api/compare", tags=["Compare"])
-    app.include_router(upload.router, prefix="/api/upload", tags=["Upload"])
-    app.include_router(domain.router, prefix="/api/domain", tags=["Domain"])
-    app.include_router(cpl_mapping.router, prefix="/api/cpl-mapping", tags=["CPL"])
-    print("All routers added!", file=sys.stderr)
-except Exception as e:
-    print(f"ERROR: {e}", file=sys.stderr)
-    import traceback
-
-    traceback.print_exc(file=sys.stderr)
+app.include_router(routers.graph.router, prefix="/api/graph", tags=["KG"])
+app.include_router(routers.pipeline.router, prefix="/api/pipeline", tags=["Pipeline"])
+app.include_router(routers.cri.router, prefix="/api/cri", tags=["CRI"])
+app.include_router(routers.ablation.router, prefix="/api/ablation", tags=["Ablation"])
+app.include_router(routers.compare.router, prefix="/api/compare", tags=["Compare"])
+app.include_router(routers.upload.router, prefix="/api/upload", tags=["Upload"])
+app.include_router(routers.domain.router, prefix="/api/domain", tags=["Domain"])
+app.include_router(routers.cpl_mapping.router, prefix="/api/cpl-mapping", tags=["CPL"])
 
 
 @app.get("/")
